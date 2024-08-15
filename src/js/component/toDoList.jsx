@@ -3,7 +3,7 @@ import "../../styles/toDoList.css";
 
 let ToDoList = () => {
     let [newItem, setNewItem] = useState('');
-    let [list, setList] = useState([]);
+    let [list, setList] = useState({ todos: [] });
 
     let createUser = () => {
         fetch("https://playground.4geeks.com/todo/users/alejosz1902", {
@@ -35,14 +35,16 @@ let ToDoList = () => {
         getlist();
     }, []);
 
+    console.log(list.todos);
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (newItem.trim() !== "") {
-            const newList = Array.isArray(list) ? [...list, { label: newItem, is_done: false }] : [{ label: newItem, is_done: false }];
-            setList(newList);
+            const newList = Array.isArray(list.todos) ? [...list.todos, { label: newItem, is_done: false }] : [{ label: newItem, is_done: false }];
+            setList({ todos: newList });
             setNewItem("");
 
-            fetch(`https://playground.4geeks.com/todo/todos/${newItem}`, {
+            fetch(`https://playground.4geeks.com/todo/todos/alejosz1902`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json"
@@ -53,6 +55,7 @@ let ToDoList = () => {
                 if (!response.ok) {
                     console.error('Error adding task:', response.statusText);
                 } else {
+                    getlist();
                     console.log('Task added successfully!');
                 }
             })
@@ -63,9 +66,9 @@ let ToDoList = () => {
     };
 
     const handleDelete = (index) => {
-        const itemToDelete = list[index];
-        const newList = list.filter((_, i) => i !== index);
-        setList(newList);
+        const itemToDelete = list.todos[index];
+        const newList = list.todos.filter((_, i) => i !== index);
+        setList({ todos: newList });
 
         fetch(`https://playground.4geeks.com/todo/todos/${itemToDelete.id}`, {
             method: 'DELETE'
@@ -74,6 +77,7 @@ let ToDoList = () => {
             if (!response.ok) {
                 console.error('Error deleting task:', response.statusText);
             } else {
+                getlist();
                 console.log('Task deleted successfully!');
             }
         })
@@ -83,9 +87,9 @@ let ToDoList = () => {
     };
 
     const handleClearAll = () => {
-        setList([]);
+        setList({ todos: [] });
 
-        fetch('https://playground.4geeks.com/todo/todos', {
+        fetch('https://playground.4geeks.com/todo/users/alejosz1902', {
             method: 'DELETE'
         })
         .then(response => {
@@ -113,8 +117,8 @@ let ToDoList = () => {
                 />
             </form>
             <ul>
-                {list && list.length > 0 ? (
-                    list.map((item, index) => (
+                {list.todos && list.todos.length > 0 ? (
+                    list.todos.map((item, index) => (
                         <li key={index} className="todo-item fs-2">
                             {item.label}
                             <span className="delete mx-2" onClick={() => handleDelete(index)}>
@@ -127,7 +131,7 @@ let ToDoList = () => {
                 )}
             </ul>
             <p className="m-2 text-muted">
-                {list.length === 0 || list.length === undefined ? "No tasks, add a task" : `${list.length} items left`}
+                {list.todos && list.todos.length === 0 ? "No tasks, add a task" : `${list.todos.length} items left`}
             </p>
             <button className="btn btn-danger mt-2" onClick={handleClearAll}>
                 Clear All
